@@ -1,3 +1,6 @@
+# 1.0.4
+- Removed unnecessary typeinfo_casts (thank you ery)
+
 # 1.0.3
 - Fixed unavailable object error handling
 

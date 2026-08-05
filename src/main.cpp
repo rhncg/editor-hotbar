@@ -136,11 +136,11 @@ class $modify(ModEditorUI, EditorUI) {
         if (auto bgSlice =
                 node->getChildByType<cocos2d::extension::CCScale9Sprite>(0)) {
             bgSlice->setColor(cocos2d::ccColor3B{127, 127, 127});
-        } else if (auto bgSlice =
-                       typeinfo_cast<ButtonSprite *>(node)->getChildByIndex(
-                           1)) {
-            typeinfo_cast<CCSprite *>(bgSlice)->setColor(
-                cocos2d::ccColor3B{127, 127, 127});
+        } else if (typeinfo_cast<ButtonSprite *>(node) &&
+                   node->getChildrenCount() > 1) {
+            if (auto sprite =
+                    typeinfo_cast<CCSprite *>(node->getChildByIndex(1)))
+                sprite->setColor(cocos2d::ccColor3B{127, 127, 127});
         }
     }
 
@@ -166,9 +166,9 @@ class $modify(ModEditorUI, EditorUI) {
         CCArray *customItems = nullptr;
 
         for (int i = 0; i < 10; ++i) {
-            auto slotBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(
+            auto slotBtn = static_cast<CCMenuItemSpriteExtra *>(
                 menu->getChildByID(fmt::format("slot-btn-{}"_spr, i)));
-            auto trashBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(
+            auto trashBtn = static_cast<CCMenuItemSpriteExtra *>(
                 menu->getChildByID(fmt::format("slot-trash-btn-{}"_spr, i)));
 
             if (!slotBtn || !trashBtn)
@@ -195,14 +195,11 @@ class $modify(ModEditorUI, EditorUI) {
                     }
 
                     if (customItems) {
-                        for (unsigned int k = 0; k < customItems->count();
-                             ++k) {
-                            if (auto item = typeinfo_cast<CreateMenuItem *>(
-                                    customItems->objectAtIndex(k))) {
-                                if (item->m_objectID == objectID) {
-                                    createBtn = item;
-                                    break;
-                                }
+                        for (CreateMenuItem *item :
+                             customItems->asExt<CreateMenuItem *>()) {
+                            if (item->m_objectID == objectID) {
+                                createBtn = item;
+                                break;
                             }
                         }
                     }
@@ -259,8 +256,9 @@ class $modify(ModEditorUI, EditorUI) {
     }
 
     void onObjectSelected(CCObject *sender) {
-        auto btn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
-        int tag = btn->getTag();
+        if (!sender)
+            return;
+        int tag = sender->getTag();
         if (this->m_fields->m_slotObjects[tag] == 0) {
             this->m_selectedObjectIndex = 0;
             this->m_fields->m_assigningSlot = tag;
@@ -280,8 +278,9 @@ class $modify(ModEditorUI, EditorUI) {
     }
 
     void onObjectRemoved(CCObject *sender) {
-        auto trashBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
-        int tag = trashBtn->getTag();
+        if (!sender)
+            return;
+        int tag = sender->getTag();
         this->m_fields->m_slotObjects[tag] = 0;
         m_selectedObjectIndex = 0;
         saveHotbar();
