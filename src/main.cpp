@@ -122,7 +122,7 @@ class $modify(ModEditorUI, EditorUI) {
 
         if (file.is_open()) {
             for (int i = 0; i < 10; ++i) {
-                file << this->m_fields->m_slotObjects[i] << " ";
+                file << numToString(this->m_fields->m_slotObjects[i]) << " ";
             }
             file.close();
         }
@@ -132,21 +132,14 @@ class $modify(ModEditorUI, EditorUI) {
         if (!node)
             return;
 
-        if (auto children = node->getChildren()) {
-            for (unsigned int k = 0; k < children->count(); ++k) {
-                auto child =
-                    typeinfo_cast<CCNode *>(children->objectAtIndex(k));
-                if (!child)
-                    continue;
-
-                if (auto spr = typeinfo_cast<CCSprite *>(child)) {
-                    spr->setColor(cocos2d::ccColor3B{127, 127, 127});
-                } else if (auto rgba = typeinfo_cast<CCRGBAProtocol *>(child)) {
-                    rgba->setColor(cocos2d::ccColor3B{127, 127, 127});
-                }
-
-                applySelectionTint(child);
-            }
+        if (auto bgSlice =
+                node->getChildByType<cocos2d::extension::CCScale9Sprite>(0)) {
+            bgSlice->setColor(cocos2d::ccColor3B{127, 127, 127});
+        } else if (auto bgSlice =
+                       typeinfo_cast<ButtonSprite *>(node)->getChildByIndex(
+                           1)) {
+            typeinfo_cast<CCSprite *>(bgSlice)->setColor(
+                cocos2d::ccColor3B{127, 127, 127});
         }
     }
 
@@ -187,6 +180,13 @@ class $modify(ModEditorUI, EditorUI) {
 
                 if (objectID > 0) {
                     createBtn = this->getCreateBtn(objectID, 4);
+                    if (!createBtn) {
+                        createBtn = this->getCreateBtn(objectID, 1);
+                        this->m_fields->m_slotObjects[i] = 1;
+                        auto notif = Notification::create(fmt::format(
+                            "Object in slot {} failed to load", i + 1));
+                        notif->show();
+                    }
                 } else {
                     if (!customItems) {
                         customItems = this->createCustomItems();
