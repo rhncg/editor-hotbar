@@ -1,0 +1,86 @@
+{
+	"geode": "5.7.1",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "rcg21.editor-hotbar",
+	"name": "Editor Hotbar",
+	"version": "v1.0.0",
+	"developer": "RCG21",
+	"description": "Add frequently used objects to a hotbar",
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	},
+	"tags": ["editor", "interface", "enhancement", "utility", "offline"],
+	"links": {"source": "https://github.com/rhncg/editor-hotbar"},
+	"settings": {
+		"hotbar-color": {
+			"type": "rgb",
+			"name": "Hotbar Color",
+			"default": "#555555"
+		},
+		"hotbar-slot-1": {
+			"type": "keybind",
+			"name": "Hotbar Slot 1",
+			"category": "editor",
+			"default": "Shift+One"
+		},
+		"hotbar-slot-2": {
+			"type": "keybind",
+			"name": "Hotbar Slot 2",
+			"category": "editor",
+			"default": "Shift+Two"
+		},
+		"hotbar-slot-3": {
+			"type": "keybind",
+			"name": "Hotbar Slot 3",
+			"category": "editor",
+			"default": "Shift+Three"
+		},
+		"hotbar-slot-4": {
+			"type": "keybind",
+			"name": "Hotbar Slot 4",
+			"category": "editor",
+			"default": "Shift+Four"
+		},
+		"hotbar-slot-5": {
+			"type": "keybind",
+			"name": "Hotbar Slot 5",
+			"category": "editor",
+			"default": "Shift+Five"
+		},
+		"hotbar-slot-6": {
+			"type": "keybind",
+			"name": "Hotbar Slot 6",
+			"category": "editor",
+			"default": "Shift+Six"
+		},
+		"hotbar-slot-7": {
+			"type": "keybind",
+			"name": "Hotbar Slot 7",
+			"category": "editor",
+			"default": "Shift+Seven"
+		},
+		"hotbar-slot-8": {
+			"type": "keybind",
+			"name": "Hotbar Slot 8",
+			"category": "editor",
+			"default": "Shift+Eight"
+		},
+		"hotbar-slot-9": {
+			"type": "keybind",
+			"name": "Hotbar Slot 9",
+			"category": "editor",
+			"default": "Shift+Nine"
+		},
+		"hotbar-slot-10": {
+			"type": "keybind",
+			"name": "Hotbar Slot 10",
+			"category": "editor",
+			"default": "Shift+Zero"
+		}
+	}
+}

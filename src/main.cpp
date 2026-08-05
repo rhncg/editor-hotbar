@@ -1,0 +1,238 @@
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <fstream>
+
+using namespace geode::prelude;
+
+#include <Geode/modify/EditorUI.hpp>
+class $modify(ModEditorUI, EditorUI) {
+    struct Fields {
+        std::array<int, 10> m_slotObjects{1, 8, 1734, 31, 0, 0, 0, 0, 0, 0};
+        int m_assigningSlot = -1;
+    };
+
+    bool init(LevelEditorLayer *editorLayer) {
+        if (!EditorUI::init(editorLayer))
+            return false;
+
+        loadHotbar();
+
+        for (int i = 0; i < 10; ++i) {
+            std::string bindID = fmt::format("hotbar-slot-{}", i + 1);
+
+            this->addEventListener(
+                KeybindSettingPressedEventV3(Mod::get(), bindID),
+                [this, i](Keybind const &keybind, bool down, bool repeat,
+                          double timestamp) {
+                    if (down && !repeat) {
+                        if (auto slot = this->m_fields->m_slotObjects[i])
+                            m_selectedObjectIndex = slot;
+                        updateHotbar();
+                        return geode::ListenerResult::Stop;
+                    }
+                    return geode::ListenerResult::Propagate;
+                });
+        }
+
+        auto slice = geode::NineSlice::create("square02b_001.png");
+        slice->setContentSize({245, 30});
+
+        auto tabsMenu = this->getChildByID("build-tabs-menu");
+        if (tabsMenu) {
+            CCPoint tabsPos = tabsMenu->getPosition();
+            slice->setPosition({tabsPos.x, tabsPos.y - 40.0f});
+        } else {
+            auto winSize = CCDirector::sharedDirector()->getWinSize();
+            slice->setPosition(winSize.width / 2, winSize.height / 2 - 45);
+        }
+
+        slice->setColor(
+            Mod::get()->getSettingValue<cocos2d::ccColor3B>("hotbar-color"));
+
+        auto hotbarMenu = CCMenu::create();
+        hotbarMenu->setContentSize(slice->getContentSize());
+        hotbarMenu->setPosition(slice->getContentSize() / 2.0f);
+
+        auto layout = AxisLayout::create(Axis::Row)
+                          ->setGap(5.0f)
+                          ->setGrowCrossAxis(true)
+                          ->setCrossAxisOverflow(false)
+                          ->setAxisAlignment(AxisAlignment::Center)
+                          ->setCrossAxisAlignment(AxisAlignment::Center)
+                          ->setAutoScale(true)
+                          ->setPadding({5, 0, 5, 0});
+
+        hotbarMenu->setLayout(layout);
+
+        for (int i = 0; i < 10; ++i) {
+            auto spr = CCSprite::create("GJ_button_04.png");
+            spr->setScale(0.7f);
+            auto btn = CCMenuItemSpriteExtra::create(
+                spr, this, menu_selector(ModEditorUI::onObjectSelected));
+            btn->setID(fmt::format("slot-btn-{}"_spr, i));
+            btn->setTag(i);
+            auto trashSpr =
+                CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
+            trashSpr->setScale(0.3f);
+            auto trashBtn = CCMenuItemSpriteExtra::create(
+                trashSpr, this, menu_selector(ModEditorUI::onObjectRemoved));
+            trashBtn->setVisible(false);
+            trashBtn->setTag(i);
+            trashBtn->setID(fmt::format("slot-trash-btn-{}"_spr, i));
+
+            hotbarMenu->addChild(trashBtn);
+            hotbarMenu->addChild(btn);
+        }
+
+        slice->setID("hotbar"_spr);
+        hotbarMenu->setID("hotbar-menu"_spr);
+        hotbarMenu->updateLayout();
+        slice->addChild(hotbarMenu);
+        this->addChild(slice);
+        updateHotbar();
+        return true;
+    }
+
+    void loadHotbar() {
+        auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
+        std::ifstream file(filePath);
+
+        if (file.is_open()) {
+            for (int i = 0; i < 10; ++i) {
+                if (!(file >> this->m_fields->m_slotObjects[i])) {
+                    break;
+                }
+            }
+            file.close();
+        } else {
+            this->m_fields->m_slotObjects = {1, 8, 1734, 31, 0, 0, 0, 0, 0, 0};
+        }
+    }
+
+    void saveHotbar() {
+        auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
+        std::ofstream file(filePath);
+
+        if (file.is_open()) {
+            for (int i = 0; i < 10; ++i) {
+                file << this->m_fields->m_slotObjects[i] << " ";
+            }
+            file.close();
+        }
+    }
+
+    void updateHotbar() {
+        auto hotbar = this->getChildByID("hotbar"_spr);
+        if (!hotbar)
+            return;
+
+        if (auto tabsMenu = this->getChildByID("build-tabs-menu")) {
+            CCPoint tabsPos = tabsMenu->getPosition();
+            hotbar->setPosition({tabsPos.x, tabsPos.y + 37.5f});
+        }
+
+        auto menu = hotbar->getChildByID("hotbar-menu"_spr);
+        if (!menu)
+            return;
+
+        bool isBuildMode = (this->m_selectedMode == 2);
+        hotbar->setVisible(isBuildMode);
+        if (!isBuildMode)
+            return;
+
+        for (int i = 0; i < 10; ++i) {
+            auto slotBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(
+                menu->getChildByID(fmt::format("slot-btn-{}"_spr, i)));
+            auto trashBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(
+                menu->getChildByID(fmt::format("slot-trash-btn-{}"_spr, i)));
+
+            if (!slotBtn || !trashBtn)
+                continue;
+
+            int objectID = this->m_fields->m_slotObjects[i];
+
+            if (objectID != 0) {
+                if (auto createBtn = this->getCreateBtn(objectID, 4)) {
+                    if (auto spr = typeinfo_cast<cocos2d::CCSprite *>(
+                            createBtn->getNormalImage())) {
+                        spr->setScale(0.7f);
+
+                        if (this->m_selectedObjectIndex == objectID) {
+                            if (auto children = spr->getChildren()) {
+                                if (children->count() > 0) {
+                                    if (auto bg = typeinfo_cast<CCSprite *>(
+                                            children->objectAtIndex(1))) {
+                                        bg->setColor({127, 127, 127});
+                                    }
+                                }
+                            }
+                            trashBtn->setPosition(slotBtn->getPosition() +
+                                                  CCPoint{0, 17.5f});
+                            trashBtn->setVisible(true);
+                        } else {
+                            trashBtn->setVisible(false);
+                        }
+
+                        slotBtn->setSprite(spr);
+                    }
+                }
+            } else {
+                auto spr =
+                    CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
+                spr->setScale(0.7f);
+                slotBtn->setSprite(spr);
+                trashBtn->setVisible(false);
+            }
+        }
+    }
+
+    void onCreateButton(CCObject *sender) {
+        EditorUI::onCreateButton(sender);
+
+        if (auto item = typeinfo_cast<CreateMenuItem *>(sender)) {
+            if (this->m_selectedObjectIndex != 0 &&
+                this->m_fields->m_assigningSlot != -1) {
+                this->m_fields->m_slotObjects[this->m_fields->m_assigningSlot] =
+                    item->m_objectID;
+                this->m_fields->m_assigningSlot = -1;
+                saveHotbar();
+            }
+        }
+        updateHotbar();
+    }
+
+    void onObjectSelected(CCObject *sender) {
+        auto btn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
+        int tag = btn->getTag();
+        if (this->m_fields->m_slotObjects[tag] == 0) {
+            this->m_selectedObjectIndex = 0;
+            this->m_fields->m_assigningSlot = tag;
+            auto notif = Notification::create(
+                fmt::format("Select an object to add to slot {}", tag + 1));
+            notif->show();
+        } else {
+            if (!(m_selectedObjectIndex ==
+                  this->m_fields->m_slotObjects[tag])) {
+                m_selectedObjectIndex = this->m_fields->m_slotObjects[tag];
+            } else {
+                m_selectedObjectIndex = 0;
+            }
+        }
+        EditorUI::updateCreateMenu(false);
+        updateHotbar();
+    }
+
+    void onObjectRemoved(CCObject *sender) {
+        auto trashBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
+        int tag = trashBtn->getTag();
+        this->m_fields->m_slotObjects[tag] = 0;
+        m_selectedObjectIndex = 0;
+        saveHotbar();
+        updateHotbar();
+    }
+
+    void updateCreateMenu(bool selectTab) {
+        EditorUI::updateCreateMenu(selectTab);
+        updateHotbar();
+    }
+};
