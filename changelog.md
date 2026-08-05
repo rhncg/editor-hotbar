@@ -1,3 +1,6 @@
+# 1.0.3
+- Fixed unavailable object error handling
+
 # 1.0.2
 - Error handling if object not available
 - Fixed button tinting on selection

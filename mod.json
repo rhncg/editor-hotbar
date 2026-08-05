@@ -8,7 +8,7 @@
 	},
 	"id": "rcg21.editor-hotbar",
 	"name": "Editor Hotbar",
-	"version": "v1.0.2",
+	"version": "v1.0.3",
 	"developer": "RCG21",
 	"description": "Add frequently used objects to a hotbar",
 	"dependencies": {

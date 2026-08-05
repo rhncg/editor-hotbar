@@ -128,6 +128,7 @@ class $modify(ModEditorUI, EditorUI) {
         }
     }
 
+    // TODO: add setting to choose whether or not to tint gameobject
     void applySelectionTint(CCNode *node) {
         if (!node)
             return;
@@ -181,8 +182,9 @@ class $modify(ModEditorUI, EditorUI) {
                 if (objectID > 0) {
                     createBtn = this->getCreateBtn(objectID, 4);
                     if (!createBtn) {
-                        createBtn = this->getCreateBtn(objectID, 1);
+                        createBtn = this->getCreateBtn(1, 4);
                         this->m_fields->m_slotObjects[i] = 1;
+                        saveHotbar();
                         auto notif = Notification::create(fmt::format(
                             "Object in slot {} failed to load", i + 1));
                         notif->show();
