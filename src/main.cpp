@@ -71,6 +71,7 @@ class $modify(ModEditorUI, EditorUI) {
                 spr, this, menu_selector(ModEditorUI::onObjectSelected));
             btn->setID(fmt::format("slot-btn-{}"_spr, i));
             btn->setTag(i);
+
             auto trashSpr =
                 CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
             trashSpr->setScale(0.3f);
@@ -89,7 +90,13 @@ class $modify(ModEditorUI, EditorUI) {
         hotbarMenu->updateLayout();
         slice->addChild(hotbarMenu);
         this->addChild(slice);
+
+        if (this->m_uiItems) {
+            this->m_uiItems->addObject(slice);
+        }
+
         updateHotbar();
+
         return true;
     }
 
@@ -121,6 +128,28 @@ class $modify(ModEditorUI, EditorUI) {
         }
     }
 
+    void applySelectionTint(CCNode *node) {
+        if (!node)
+            return;
+
+        if (auto children = node->getChildren()) {
+            for (unsigned int k = 0; k < children->count(); ++k) {
+                auto child =
+                    typeinfo_cast<CCNode *>(children->objectAtIndex(k));
+                if (!child)
+                    continue;
+
+                if (auto spr = typeinfo_cast<CCSprite *>(child)) {
+                    spr->setColor(cocos2d::ccColor3B{127, 127, 127});
+                } else if (auto rgba = typeinfo_cast<CCRGBAProtocol *>(child)) {
+                    rgba->setColor(cocos2d::ccColor3B{127, 127, 127});
+                }
+
+                applySelectionTint(child);
+            }
+        }
+    }
+
     void updateHotbar() {
         auto hotbar = this->getChildByID("hotbar"_spr);
         if (!hotbar)
@@ -140,6 +169,8 @@ class $modify(ModEditorUI, EditorUI) {
         if (!isBuildMode)
             return;
 
+        CCArray *customItems = nullptr;
+
         for (int i = 0; i < 10; ++i) {
             auto slotBtn = typeinfo_cast<CCMenuItemSpriteExtra *>(
                 menu->getChildByID(fmt::format("slot-btn-{}"_spr, i)));
@@ -152,29 +183,53 @@ class $modify(ModEditorUI, EditorUI) {
             int objectID = this->m_fields->m_slotObjects[i];
 
             if (objectID != 0) {
-                if (auto createBtn = this->getCreateBtn(objectID, 4)) {
-                    if (auto spr = typeinfo_cast<cocos2d::CCSprite *>(
-                            createBtn->getNormalImage())) {
-                        spr->setScale(0.7f);
+                CreateMenuItem *createBtn = nullptr;
 
-                        if (this->m_selectedObjectIndex == objectID) {
-                            if (auto children = spr->getChildren()) {
-                                if (children->count() > 0) {
-                                    if (auto bg = typeinfo_cast<CCSprite *>(
-                                            children->objectAtIndex(1))) {
-                                        bg->setColor({127, 127, 127});
-                                    }
+                if (objectID > 0) {
+                    createBtn = this->getCreateBtn(objectID, 4);
+                } else {
+                    if (!customItems) {
+                        customItems = this->createCustomItems();
+                    }
+
+                    if (customItems) {
+                        for (unsigned int k = 0; k < customItems->count();
+                             ++k) {
+                            if (auto item = typeinfo_cast<CreateMenuItem *>(
+                                    customItems->objectAtIndex(k))) {
+                                if (item->m_objectID == objectID) {
+                                    createBtn = item;
+                                    break;
                                 }
                             }
-                            trashBtn->setPosition(slotBtn->getPosition() +
-                                                  CCPoint{0, 17.5f});
-                            trashBtn->setVisible(true);
-                        } else {
-                            trashBtn->setVisible(false);
                         }
-
-                        slotBtn->setSprite(spr);
                     }
+                }
+
+                CCSprite *spr = nullptr;
+                if (createBtn) {
+                    spr = typeinfo_cast<cocos2d::CCSprite *>(
+                        createBtn->getNormalImage());
+                }
+
+                if (!spr) {
+                    spr = CCSprite::create("GJ_button_04.png");
+                }
+
+                if (spr) {
+                    spr->setScale(0.7f);
+
+                    if (this->m_selectedObjectIndex == objectID) {
+                        applySelectionTint(spr);
+
+                        trashBtn->setPosition(slotBtn->getPosition() +
+                                              CCPoint{0, 17.5f});
+                        trashBtn->setVisible(true);
+                    } else {
+                        trashBtn->setVisible(false);
+                    }
+
+                    slotBtn->setSprite(spr);
                 }
             } else {
                 auto spr =
@@ -233,6 +288,11 @@ class $modify(ModEditorUI, EditorUI) {
 
     void updateCreateMenu(bool selectTab) {
         EditorUI::updateCreateMenu(selectTab);
+        updateHotbar();
+    }
+
+    void showUI(bool show) {
+        EditorUI::showUI(show);
         updateHotbar();
     }
 };
