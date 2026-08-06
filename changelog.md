@@ -1,3 +1,7 @@
+
+# 1.0.5
+- big refactor by ery
+
 # 1.0.4
 - Removed unnecessary typeinfo_casts (thank you ery)
 

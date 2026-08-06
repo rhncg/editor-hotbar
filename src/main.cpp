@@ -4,6 +4,15 @@
 
 using namespace geode::prelude;
 
+#include <Geode/modify/GameManager.hpp>
+class $modify(GameManager) {
+    gd::string stringForCustomObject(int customObjectID) {
+        gd::string ret = GameManager::stringForCustomObject(customObjectID);
+        log::info("customObjectID: {}", customObjectID);
+        return ret;
+    }
+};
+
 #include <Geode/modify/EditorUI.hpp>
 class $modify(ModEditorUI, EditorUI) {
     struct Fields {
@@ -103,26 +112,28 @@ class $modify(ModEditorUI, EditorUI) {
     void loadHotbar() {
         auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
         std::ifstream file(filePath);
+        auto fields = m_fields.self();
 
         if (file.is_open()) {
             for (int i = 0; i < 10; ++i) {
-                if (!(file >> this->m_fields->m_slotObjects[i])) {
+                if (!(file >> fields->m_slotObjects[i])) {
                     break;
                 }
             }
             file.close();
         } else {
-            this->m_fields->m_slotObjects = {1, 8, 1734, 31, 0, 0, 0, 0, 0, 0};
+            fields->m_slotObjects = {1, 8, 1734, 31, 0, 0, 0, 0, 0, 0};
         }
     }
 
     void saveHotbar() {
         auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
         std::ofstream file(filePath);
+        auto fields = m_fields.self();
 
         if (file.is_open()) {
             for (int i = 0; i < 10; ++i) {
-                file << numToString(this->m_fields->m_slotObjects[i]) << " ";
+                file << numToString(fields->m_slotObjects[i]) << " ";
             }
             file.close();
         }
@@ -163,7 +174,7 @@ class $modify(ModEditorUI, EditorUI) {
         if (!isBuildMode)
             return;
 
-        CCArray *customItems = nullptr;
+        auto fields = m_fields.self();
 
         for (int i = 0; i < 10; ++i) {
             auto slotBtn = static_cast<CCMenuItemSpriteExtra *>(
@@ -174,7 +185,7 @@ class $modify(ModEditorUI, EditorUI) {
             if (!slotBtn || !trashBtn)
                 continue;
 
-            int objectID = this->m_fields->m_slotObjects[i];
+            int objectID = fields->m_slotObjects[i];
 
             if (objectID != 0) {
                 CreateMenuItem *createBtn = nullptr;
@@ -183,32 +194,21 @@ class $modify(ModEditorUI, EditorUI) {
                     createBtn = this->getCreateBtn(objectID, 4);
                     if (!createBtn) {
                         createBtn = this->getCreateBtn(1, 4);
-                        this->m_fields->m_slotObjects[i] = 1;
+                        fields->m_slotObjects[i] = 1;
                         saveHotbar();
                         auto notif = Notification::create(fmt::format(
                             "Object in slot {} failed to load", i + 1));
                         notif->show();
                     }
-                } else {
-                    if (!customItems) {
-                        customItems = this->createCustomItems();
-                    }
-
-                    if (customItems) {
-                        for (CreateMenuItem *item :
-                             customItems->asExt<CreateMenuItem *>()) {
-                            if (item->m_objectID == objectID) {
-                                createBtn = item;
-                                break;
-                            }
-                        }
-                    }
+                } else if (objectID < 0) {
+                    createBtn = this->menuItemFromObjectString(
+                        GameManager::get()->stringForCustomObject(objectID),
+                        objectID);
                 }
 
-                CCSprite *spr = nullptr;
+                CCNode *spr = nullptr;
                 if (createBtn) {
-                    spr = typeinfo_cast<cocos2d::CCSprite *>(
-                        createBtn->getNormalImage());
+                    spr = createBtn->getNormalImage();
                 }
 
                 if (!spr) {
@@ -228,7 +228,7 @@ class $modify(ModEditorUI, EditorUI) {
                         trashBtn->setVisible(false);
                     }
 
-                    slotBtn->setSprite(spr);
+                    slotBtn->setSprite(static_cast<CCSprite *>(spr));
                 }
             } else {
                 auto spr =
@@ -244,11 +244,12 @@ class $modify(ModEditorUI, EditorUI) {
         EditorUI::onCreateButton(sender);
 
         if (auto item = typeinfo_cast<CreateMenuItem *>(sender)) {
+            auto fields = m_fields.self();
             if (this->m_selectedObjectIndex != 0 &&
-                this->m_fields->m_assigningSlot != -1) {
-                this->m_fields->m_slotObjects[this->m_fields->m_assigningSlot] =
+                fields->m_assigningSlot > -1) {
+                fields->m_slotObjects[fields->m_assigningSlot] =
                     item->m_objectID;
-                this->m_fields->m_assigningSlot = -1;
+                fields->m_assigningSlot = -1;
                 saveHotbar();
             }
         }
@@ -259,16 +260,16 @@ class $modify(ModEditorUI, EditorUI) {
         if (!sender)
             return;
         int tag = sender->getTag();
-        if (this->m_fields->m_slotObjects[tag] == 0) {
+        auto fields = m_fields.self();
+        if (fields->m_slotObjects[tag] == 0) {
             this->m_selectedObjectIndex = 0;
-            this->m_fields->m_assigningSlot = tag;
+            fields->m_assigningSlot = tag;
             auto notif = Notification::create(
                 fmt::format("Select an object to add to slot {}", tag + 1));
             notif->show();
         } else {
-            if (!(m_selectedObjectIndex ==
-                  this->m_fields->m_slotObjects[tag])) {
-                m_selectedObjectIndex = this->m_fields->m_slotObjects[tag];
+            if (m_selectedObjectIndex != fields->m_slotObjects[tag]) {
+                m_selectedObjectIndex = fields->m_slotObjects[tag];
             } else {
                 m_selectedObjectIndex = 0;
             }

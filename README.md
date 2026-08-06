@@ -7,6 +7,9 @@ This mod has been tested with both BetterEdit and Tinker. Please report any comp
 # Issues
 Please contact @rhncg on Discord if you run into any issues or have suggestions
 
+# Credits
+Thank you Erymanthus for refactoring my laggy code
+
 # Building
 ```sh
 geode build
