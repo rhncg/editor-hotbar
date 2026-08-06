@@ -22,65 +22,70 @@
 			"name": "Hotbar Color",
 			"default": "#555555"
 		},
+		"show-hotbar-outline": {
+			"type": "bool",
+			"name": "Show Hotbar Outline",
+			"default": false
+		},
 		"hotbar-slot-1": {
 			"type": "keybind",
 			"name": "Hotbar Slot 1",
 			"category": "editor",
-			"default": "Shift+One"
+			"default": ["Shift+One", "NumPad0"]
 		},
 		"hotbar-slot-2": {
 			"type": "keybind",
 			"name": "Hotbar Slot 2",
 			"category": "editor",
-			"default": "Shift+Two"
+			"default": ["Shift+Two", "NumPad1"]
 		},
 		"hotbar-slot-3": {
 			"type": "keybind",
 			"name": "Hotbar Slot 3",
 			"category": "editor",
-			"default": "Shift+Three"
+			"default": ["Shift+Three", "NumPad2"]
 		},
 		"hotbar-slot-4": {
 			"type": "keybind",
 			"name": "Hotbar Slot 4",
 			"category": "editor",
-			"default": "Shift+Four"
+			"default": ["Shift+Four", "NumPad3"]
 		},
 		"hotbar-slot-5": {
 			"type": "keybind",
 			"name": "Hotbar Slot 5",
 			"category": "editor",
-			"default": "Shift+Five"
+			"default": ["Shift+Five", "NumPad4"]
 		},
 		"hotbar-slot-6": {
 			"type": "keybind",
 			"name": "Hotbar Slot 6",
 			"category": "editor",
-			"default": "Shift+Six"
+			"default": ["Shift+Six", "NumPad5"]
 		},
 		"hotbar-slot-7": {
 			"type": "keybind",
 			"name": "Hotbar Slot 7",
 			"category": "editor",
-			"default": "Shift+Seven"
+			"default": ["Shift+Seven", "NumPad6"]
 		},
 		"hotbar-slot-8": {
 			"type": "keybind",
 			"name": "Hotbar Slot 8",
 			"category": "editor",
-			"default": "Shift+Eight"
+			"default": ["Shift+Eight", "NumPad7"]
 		},
 		"hotbar-slot-9": {
 			"type": "keybind",
 			"name": "Hotbar Slot 9",
 			"category": "editor",
-			"default": "Shift+Nine"
+			"default": ["Shift+Nine", "NumPad8"]
 		},
 		"hotbar-slot-10": {
 			"type": "keybind",
 			"name": "Hotbar Slot 10",
 			"category": "editor",
-			"default": "Shift+Zero"
+			"default": ["Shift+Zero", "NumPad9"]
 		}
 	}
 }

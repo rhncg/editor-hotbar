@@ -16,6 +16,8 @@ class $modify(GameManager) {
 #include <Geode/modify/EditorUI.hpp>
 class $modify(ModEditorUI, EditorUI) {
     struct Fields {
+        // std::vector<std::array<int, 10>> m_hotbarPages;
+        // size_t m_currentPage = 0;
         std::array<int, 10> m_slotObjects{1, 8, 1734, 31, 0, 0, 0, 0, 0, 0};
         int m_assigningSlot = -1;
     };
@@ -45,11 +47,17 @@ class $modify(ModEditorUI, EditorUI) {
 
         auto slice = geode::NineSlice::create("square02b_001.png");
         slice->setContentSize({245, 30});
+        if (Mod::get()->getSettingValue<bool>("show-hotbar-outline")) {
+            auto outline = geode::NineSlice::create("GJ_square07.png");
+            outline->setContentSize({245, 30});
+            outline->setPosition({245 / 2.0f, 30 / 2.0f});
+            slice->addChild(outline);
+        }
 
         auto tabsMenu = this->getChildByID("build-tabs-menu");
         if (tabsMenu) {
             CCPoint tabsPos = tabsMenu->getPosition();
-            slice->setPosition({tabsPos.x, tabsPos.y - 40.0f});
+            slice->setPosition({tabsPos.x, tabsPos.y - 45.0f});
         } else {
             auto winSize = CCDirector::sharedDirector()->getWinSize();
             slice->setPosition(winSize.width / 2, winSize.height / 2 - 45);
@@ -108,6 +116,21 @@ class $modify(ModEditorUI, EditorUI) {
 
         return true;
     }
+
+    // int getSlotObject(size_t slot) {
+    //     auto fields = m_fields.self();
+    //     if (fields->m_currentPage < fields->m_hotbarPages.size() && slot < 10) {
+    //         return fields->m_hotbarPages[fields->m_currentPage][slot];
+    //     }
+    //     return 0;
+    // }
+
+    // void setSlotObject(size_t slot, int value) {
+    //     auto fields = m_fields.self();
+    //     if (fields->m_currentPage < fields->m_hotbarPages.size() && slot < 10) {
+    //         fields->m_hotbarPages[fields->m_currentPage][slot] = value;
+    //     }
+    // }
 
     void loadHotbar() {
         auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
