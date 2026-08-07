@@ -1,3 +1,8 @@
+# 1.1.0
+- Added support for multiple hotbars
+- Added numpad default keybinds
+- Added an option for hotbar outline for now (visual overhaul coming later probably)
+- Fixed custom object button tint bug
 
 # 1.0.5
 - big refactor by ery

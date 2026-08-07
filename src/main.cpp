@@ -426,6 +426,7 @@ class $modify(ModEditorUI, EditorUI) {
     }
 };
 
+// should move this to another file
 class HotbarMenuPopup : public geode::Popup {
   protected:
     ScrollLayer *m_scrollLayer = nullptr;
@@ -462,9 +463,8 @@ class HotbarMenuPopup : public geode::Popup {
             this->m_mainLayer->addChild(m_scrollLayer);
         }
 
-        float itemHeight = 38.0f;
-        float rawContentHeight = (fields->m_hotbarPages.size() + 1) * itemHeight;
-        float totalHeight = std::max(rawContentHeight, scrollLayerSize.height);
+        float contentHeight = (fields->m_hotbarPages.size() + 1) * 38.0f; // 38 item height
+        float totalHeight = std::max(contentHeight, scrollLayerSize.height);
 
         auto contentLayer = m_scrollLayer->m_contentLayer;
         contentLayer->setContentSize({scrollLayerSize.width, totalHeight});
