@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <fstream>
@@ -10,7 +11,7 @@ using namespace geode::prelude;
 class $modify(GameManager) {
     gd::string stringForCustomObject(int customObjectID) {
         gd::string ret = GameManager::stringForCustomObject(customObjectID);
-        log::info("customObjectID: {}", customObjectID);
+        // log::info("customObjectID: {}", customObjectID);
         return ret;
     }
 };
@@ -63,6 +64,8 @@ class $modify(ModEditorUI, EditorUI) {
             auto btn = CCMenuItemSpriteExtra::create(spr, target, selectCallback);
             btn->setID(fmt::format("slot-btn-{}"_spr, i));
             btn->setTag(i);
+            if (inPopup)
+                btn->setEnabled(false);
 
             auto trashSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
             trashSpr->setScale(0.3f);
@@ -127,6 +130,7 @@ class $modify(ModEditorUI, EditorUI) {
                                            if (auto slot = getSlotObject(i))
                                                m_selectedObjectIndex = slot;
                                            updateHotbar();
+
                                            return geode::ListenerResult::Stop;
                                        }
                                        return geode::ListenerResult::Propagate;
@@ -290,7 +294,7 @@ class $modify(ModEditorUI, EditorUI) {
         }
     }
 
-    void updateHotbar() {
+    void updateHotbar(bool triggeredByCreateMenuSelect = false) {
         auto hotbar = this->getChildByID("hotbar"_spr);
         if (!hotbar)
             return;
@@ -358,12 +362,20 @@ class $modify(ModEditorUI, EditorUI) {
                     slotBtn->setSprite(static_cast<CCSprite *>(spr));
                 }
             } else {
-                auto spr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
-                spr->setScale(0.7f);
+                CCSprite *spr;
+                if (m_fields->m_currentPage == m_fields->m_assigningPage && i == m_fields->m_assigningSlot) {
+                    spr = CCSprite::createWithSpriteFrameName("GJ_cancelDownloadBtn_001.png");
+                    spr->setScale(0.5);
+                } else {
+                    spr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
+                    spr->setScale(0.7f);
+                }
                 slotBtn->setSprite(spr);
                 trashBtn->setVisible(false);
             }
         }
+        if (!triggeredByCreateMenuSelect)
+            EditorUI::updateCreateMenu(false);
     }
 
     void onCreateButton(CCObject *sender) {
@@ -389,11 +401,16 @@ class $modify(ModEditorUI, EditorUI) {
         int objectID = getSlotObject(tag);
 
         if (objectID == 0) {
-            this->m_selectedObjectIndex = 0;
-            fields->m_assigningSlot = tag;
-            fields->m_assigningPage = fields->m_currentPage;
-            auto notif = Notification::create(fmt::format("Select an object to add to slot {}", tag + 1));
-            notif->show();
+            if (fields->m_assigningPage == fields->m_currentPage && tag == fields->m_assigningSlot) {
+                fields->m_assigningPage = -1;
+                fields->m_assigningSlot = -1;
+            } else {
+                this->m_selectedObjectIndex = 0;
+                fields->m_assigningSlot = tag;
+                fields->m_assigningPage = fields->m_currentPage;
+                auto notif = Notification::create(fmt::format("Select an object to add to slot {}", tag + 1));
+                notif->show();
+            }
         } else {
             if (m_selectedObjectIndex != objectID) {
                 m_selectedObjectIndex = objectID;
@@ -401,7 +418,6 @@ class $modify(ModEditorUI, EditorUI) {
                 m_selectedObjectIndex = 0;
             }
         }
-        EditorUI::updateCreateMenu(false);
         updateHotbar();
     }
 
@@ -417,7 +433,7 @@ class $modify(ModEditorUI, EditorUI) {
 
     void updateCreateMenu(bool selectTab) {
         EditorUI::updateCreateMenu(selectTab);
-        updateHotbar();
+        updateHotbar(true);
     }
 
     void showUI(bool show) {
@@ -538,18 +554,35 @@ class HotbarMenuPopup : public geode::Popup {
             contentLayer->addChild(container);
         }
 
-        auto addPageMenu = CCMenu::create();
-        addPageMenu->setContentSize({280.f, 30.f});
+        auto popupOptionsMenu = CCMenu::create();
+        popupOptionsMenu->setContentSize({280.f, 30.f});
+
+        auto popupOptionsLayout = AxisLayout::create(Axis::Row)
+                                      ->setGap(5.0f)
+                                      ->setGrowCrossAxis(true)
+                                      ->setCrossAxisOverflow(false)
+                                      ->setAxisAlignment(AxisAlignment::Center)
+                                      ->setCrossAxisAlignment(AxisAlignment::Center)
+                                      ->setAutoScale(true)
+                                      ->setPadding({5, 0, 5, 0});
+
+        popupOptionsMenu->setLayout(popupOptionsLayout);
 
         auto addPageSpr = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
-        addPageSpr->setScale(0.8f);
+        addPageSpr->setScale(0.7f);
 
         auto addPageBtn = CCMenuItemSpriteExtra::create(addPageSpr, this, menu_selector(HotbarMenuPopup::onAddPage));
-        addPageBtn->setPosition(addPageMenu->getContentSize() / 2.0f);
+        // addPageBtn->setPosition(popupOptionsMenu->getContentSize() / 2.0f);
 
-        addPageMenu->addChild(addPageBtn);
-        contentLayer->addChild(addPageMenu);
+        auto modSettingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+        modSettingsSpr->setScale(0.7f);
+        auto modSettingsBtn = CCMenuItemSpriteExtra::create(modSettingsSpr, this, menu_selector(HotbarMenuPopup::onOpenModSettings));
 
+        popupOptionsMenu->addChild(addPageBtn);
+        popupOptionsMenu->addChild(modSettingsBtn);
+        contentLayer->addChild(popupOptionsMenu);
+
+        popupOptionsMenu->updateLayout();
         contentLayer->updateLayout();
 
         if (isFirstLoad) {
@@ -564,12 +597,17 @@ class HotbarMenuPopup : public geode::Popup {
     void onDeletePage(CCObject *sender) {
         if (!sender)
             return;
+
         size_t pageIdx = static_cast<size_t>(sender->getTag());
 
-        if (auto modEditor = static_cast<ModEditorUI *>(EditorUI::get())) {
-            modEditor->removePage(pageIdx);
-            setupList();
-        }
+        geode::createQuickPopup("Delete Page", "Are you sure you want to delete this page?", "No", "Yes", [this, pageIdx](auto, bool btn2) {
+            if (btn2) {
+                if (auto modEditor = static_cast<ModEditorUI *>(EditorUI::get())) {
+                    modEditor->removePage(pageIdx);
+                    this->setupList();
+                }
+            }
+        });
     }
 
     void onAddPage(CCObject *sender) {
@@ -578,6 +616,8 @@ class HotbarMenuPopup : public geode::Popup {
             setupList();
         }
     }
+
+    void onOpenModSettings(CCObject *sender) { geode::openSettingsPopup(Mod::get(), false); }
 
   public:
     static HotbarMenuPopup *create() {

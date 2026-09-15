@@ -1,3 +1,9 @@
+# 1.1.1
+- Added confirmation popup before deleting a page
+- Create menu UI now updates when using keybinds
+- Added button to access mod settings in editor
+- Added button to cancel slot selection
+
 # 1.1.0
 - Added support for multiple hotbars
 - Added numpad default keybinds
