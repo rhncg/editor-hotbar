@@ -23,6 +23,7 @@ class $modify(ModEditorUI, EditorUI) {
         int m_currentPage = 0;
         int m_assigningPage = -1;
         int m_assigningSlot = -1;
+        bool m_uiVisible = true;
     };
 
     geode::NineSlice *createHotbarLayout(bool inPopup = false) {
@@ -35,6 +36,8 @@ class $modify(ModEditorUI, EditorUI) {
             outline->setPosition({245 / 2.0f, 30 / 2.0f});
             hotbar->addChild(outline);
         }
+        if (!inPopup)
+            hotbar->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
 
         hotbar->setColor(Mod::get()->getSettingValue<cocos2d::ccColor3B>("hotbar-color"));
 
@@ -61,14 +64,19 @@ class $modify(ModEditorUI, EditorUI) {
         for (int i = 0; i < 10; ++i) {
             auto spr = CCSprite::create("GJ_button_04.png");
             spr->setScale(0.7f);
+
             auto btn = CCMenuItemSpriteExtra::create(spr, target, selectCallback);
             btn->setID(fmt::format("slot-btn-{}"_spr, i));
             btn->setTag(i);
+            btn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
+            btn->setCascadeOpacityEnabled(true);
             if (inPopup)
                 btn->setEnabled(false);
 
             auto trashSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
             trashSpr->setScale(0.3f);
+            trashSpr->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
+
             auto trashBtn = CCMenuItemSpriteExtra::create(trashSpr, target, removeCallback);
             trashBtn->setVisible(false);
             trashBtn->setTag(i);
@@ -91,6 +99,7 @@ class $modify(ModEditorUI, EditorUI) {
             auto leftArrowBtn = CCMenuItemSpriteExtra::create(leftArrowSpr, this, menu_selector(ModEditorUI::onPageLeft));
             leftArrowBtn->setPosition({hotbar->getContentWidth() / 2 - 135, hotbar->getContentHeight() / 2});
             leftArrowBtn->setID("left-arrow"_spr);
+            leftArrowBtn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
 
             auto rightArrowSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
             rightArrowSpr->setFlipX(true);
@@ -98,12 +107,14 @@ class $modify(ModEditorUI, EditorUI) {
             auto rightArrowBtn = CCMenuItemSpriteExtra::create(rightArrowSpr, this, menu_selector(ModEditorUI::onPageRight));
             rightArrowBtn->setPosition({hotbar->getContentWidth() / 2 + 135, hotbar->getContentHeight() / 2});
             rightArrowBtn->setID("right-arrow"_spr);
+            rightArrowBtn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
 
             auto hotbarMenuSpr = CCSprite::createWithSpriteFrameName("GJ_menuBtn_001.png");
             hotbarMenuSpr->setScale(0.5);
             auto hotbarMenuBtn = CCMenuItemSpriteExtra::create(hotbarMenuSpr, this, menu_selector(ModEditorUI::onHotbarMenu));
             hotbarMenuBtn->setPosition({hotbar->getContentWidth() / 2 + 160, hotbar->getContentHeight() / 2});
             hotbarMenuBtn->setID("hotbar-menu-btn"_spr);
+            hotbarMenuBtn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
 
             hotbarBtnMenu->addChild(leftArrowBtn);
             hotbarBtnMenu->addChild(rightArrowBtn);
@@ -138,15 +149,6 @@ class $modify(ModEditorUI, EditorUI) {
         }
 
         auto hotbar = createHotbarLayout(false);
-
-        auto tabsMenu = this->getChildByID("build-tabs-menu");
-        if (tabsMenu) {
-            CCPoint tabsPos = tabsMenu->getPosition();
-            hotbar->setPosition({tabsPos.x, tabsPos.y - 45.0f});
-        } else {
-            auto winSize = CCDirector::sharedDirector()->getWinSize();
-            hotbar->setPosition(winSize.width / 2, winSize.height / 2 - 45);
-        }
 
         hotbar->setID("hotbar"_spr);
         this->addChild(hotbar);
@@ -301,7 +303,7 @@ class $modify(ModEditorUI, EditorUI) {
 
         if (auto tabsMenu = this->getChildByID("build-tabs-menu")) {
             CCPoint tabsPos = tabsMenu->getPosition();
-            hotbar->setPosition({tabsPos.x, tabsPos.y + 37.5f});
+            hotbar->setPosition({tabsPos.x, tabsPos.y + 37.5f + Mod::get()->getSettingValue<int64_t>("hotbar-y-offset")});
         }
 
         auto menu = hotbar->getChildByID("hotbar-menu"_spr);
@@ -309,8 +311,9 @@ class $modify(ModEditorUI, EditorUI) {
             return;
 
         bool isBuildMode = (this->m_selectedMode == 2);
-        hotbar->setVisible(isBuildMode);
-        if (!isBuildMode)
+
+        hotbar->setVisible(isBuildMode && m_fields->m_uiVisible);
+        if (!isBuildMode || !m_fields->m_uiVisible)
             return;
 
         for (int i = 0; i < 10; ++i) {
@@ -350,6 +353,11 @@ class $modify(ModEditorUI, EditorUI) {
                 if (spr) {
                     spr->setScale(0.7f);
 
+                    if (auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol *>(spr)) {
+                        rgba->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
+                        rgba->setCascadeOpacityEnabled(true);
+                    }
+
                     if (this->m_selectedObjectIndex == objectID) {
                         applySelectionTint(spr);
 
@@ -360,6 +368,8 @@ class $modify(ModEditorUI, EditorUI) {
                     }
 
                     slotBtn->setSprite(static_cast<CCSprite *>(spr));
+                    slotBtn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
+                    slotBtn->setCascadeOpacityEnabled(true);
                 }
             } else {
                 CCSprite *spr;
@@ -371,6 +381,7 @@ class $modify(ModEditorUI, EditorUI) {
                     spr->setScale(0.7f);
                 }
                 slotBtn->setSprite(spr);
+                slotBtn->setOpacity(Mod::get()->getSettingValue<int64_t>("hotbar-opacity"));
                 trashBtn->setVisible(false);
             }
         }
@@ -438,6 +449,7 @@ class $modify(ModEditorUI, EditorUI) {
 
     void showUI(bool show) {
         EditorUI::showUI(show);
+        m_fields->m_uiVisible = show;
         updateHotbar();
     }
 };

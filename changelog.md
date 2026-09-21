@@ -1,3 +1,8 @@
+# 1.1.2
+- Fixed a bug where hotbar stay visible when UI items are hidden with mods like Tinker
+- Added experimental setting for hotbar opacity
+- Added setting for hotbar y-offset
+
 # 1.1.1
 - Added confirmation popup before deleting a page
 - Create menu UI now updates when using keybinds
