@@ -1,5 +1,5 @@
 # 1.1.3
-- Support for Geode v6
+- Support for Geode v6 (iOS temporarily not supported)
 
 # 1.1.2
 - Fixed a bug where hotbar stay visible when UI items are hidden with mods like Tinker
