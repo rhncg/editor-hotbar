@@ -1,22 +1,23 @@
 #include <Geode/Geode.hpp>
+#include <Geode/modify/EditorUI.hpp>
+#include <Geode/modify/GameManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <asp/fs/std.hpp>
 #include <fstream>
 #include <sstream>
 
 using namespace geode::prelude;
 
-#include <Geode/modify/GameManager.hpp>
 class $modify(GameManager) {
-    gd::string stringForCustomObject(int customObjectID) {
-        gd::string ret = GameManager::stringForCustomObject(customObjectID);
+    std::string stringForCustomObject(int customObjectID) {
+        std::string ret = GameManager::stringForCustomObject(customObjectID);
         // log::info("customObjectID: {}", customObjectID);
         return ret;
     }
 };
 
-#include <Geode/modify/EditorUI.hpp>
 class $modify(ModEditorUI, EditorUI) {
     struct Fields {
         std::vector<std::array<int, 10>> m_hotbarPages;
@@ -235,28 +236,28 @@ class $modify(ModEditorUI, EditorUI) {
     }
 
     void loadHotbar() {
-        auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
-        std::ifstream file(filePath);
         auto fields = m_fields.self();
-
         fields->m_hotbarPages.clear();
 
-        if (file.is_open()) {
-            std::string line;
-            while (std::getline(file, line)) {
-                if (line.empty())
-                    continue;
+        if (auto filePathRes = (Mod::get()->getSaveDir() / "hotbar.txt").toStdPath()) {
+            std::ifstream file(filePathRes.unwrap());
+            if (file.is_open()) {
+                std::string line;
+                while (std::getline(file, line)) {
+                    if (line.empty())
+                        continue;
 
-                std::istringstream iss(line);
-                std::array<int, 10> pageData{0};
-                for (int i = 0; i < 10; ++i) {
-                    if (!(iss >> pageData[i])) {
-                        break;
+                    std::istringstream iss(line);
+                    std::array<int, 10> pageData{0};
+                    for (int i = 0; i < 10; ++i) {
+                        if (!(iss >> pageData[i])) {
+                            break;
+                        }
                     }
+                    fields->m_hotbarPages.push_back(pageData);
                 }
-                fields->m_hotbarPages.push_back(pageData);
+                file.close();
             }
-            file.close();
         }
 
         if (fields->m_hotbarPages.empty()) {
@@ -269,8 +270,11 @@ class $modify(ModEditorUI, EditorUI) {
     }
 
     void saveHotbar() {
-        auto filePath = Mod::get()->getSaveDir() / "hotbar.txt";
-        std::ofstream file(filePath);
+        auto filePathRes = (Mod::get()->getSaveDir() / "hotbar.txt").toStdPath();
+        if (!filePathRes)
+            return;
+
+        std::ofstream file(filePathRes.unwrap());
         auto fields = m_fields.self();
 
         if (file.is_open()) {
@@ -487,7 +491,9 @@ class HotbarMenuPopup : public geode::Popup {
             m_scrollLayer->m_contentLayer->removeAllChildren();
         } else {
             m_scrollLayer = ScrollLayer::create(scrollLayerSize);
-            m_scrollLayer->setPosition({(m_mainLayer->getContentWidth() - scrollLayerSize.width) / 2.0f, 15.f});
+            m_scrollLayer->ignoreAnchorPointForPosition(false);
+            m_scrollLayer->setAnchorPoint({0.5f, 0.5f});
+            m_scrollLayer->setPosition({m_mainLayer->getContentWidth() / 2.0f, m_mainLayer->getContentHeight() / 2.0f - 10.f});
             this->m_mainLayer->addChild(m_scrollLayer);
         }
 
