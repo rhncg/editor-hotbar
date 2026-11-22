@@ -1,3 +1,6 @@
+# 1.1.4
+- iOS is back
+
 # 1.1.3
 - Support for Geode v6 (iOS temporarily not supported)
 

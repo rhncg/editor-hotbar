@@ -3,11 +3,12 @@
 	"gd": {
 		"win": "2.2091",
 		"android": "2.2091",
-		"mac": "2.2091"
+		"mac": "2.2091",
+		"ios": "2.2091"
 	},
 	"id": "rcg21.editor-hotbar",
 	"name": "Editor Hotbar",
-	"version": "v1.1.3",
+	"version": "v1.1.4",
 	"developer": "RCG21",
 	"description": "Add frequently used objects to a hotbar",
 	"dependencies": {
