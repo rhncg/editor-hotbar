@@ -342,7 +342,13 @@ class $modify(ModEditorUI, EditorUI) {
                         notif->show();
                     }
                 } else if (objectID < 0) {
-                    createBtn = this->menuItemFromObjectString(GameManager::get()->stringForCustomObject(objectID), objectID);
+                    auto objStr = GameManager::get()->stringForCustomObject(objectID);
+                    if (!objStr.empty()) {
+                        createBtn = this->menuItemFromObjectString(GameManager::get()->stringForCustomObject(objectID), objectID);
+                    } else {
+                        setSlotObject(i, 0);
+                        saveHotbar();
+                    }
                 }
 
                 CCNode *spr = nullptr;
@@ -538,7 +544,9 @@ class HotbarMenuPopup : public geode::Popup {
                         if (objectID > 0) {
                             createBtn = modEditor->getCreateBtn(objectID, 4);
                         } else if (objectID < 0) {
-                            createBtn = modEditor->menuItemFromObjectString(GameManager::get()->stringForCustomObject(objectID), objectID);
+                            auto objStr = GameManager::get()->stringForCustomObject(objectID);
+                            if (!objStr.empty())
+                                createBtn = modEditor->menuItemFromObjectString(GameManager::get()->stringForCustomObject(objectID), objectID);
                         }
 
                         CCNode *spr = nullptr;

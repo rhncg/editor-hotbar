@@ -1,3 +1,6 @@
+# 1.1.6
+- Fixed an issue where deleting a custom object after it was added to the hotbar could cause a crash
+
 # 1.1.5
 - Fixed an issue where the hotbar would not appear when in the build menu
 
