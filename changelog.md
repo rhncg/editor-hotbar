@@ -1,6 +1,7 @@
 # 1.2.0
 - Refactored code
 - Tinker compatibility is back
+- Hotbar height adjusts with UI scale
 
 # 1.1.6
 - Fixed an issue where deleting a custom object after it was added to the hotbar could cause a crash
