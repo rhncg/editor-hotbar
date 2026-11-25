@@ -2,7 +2,8 @@
 Adds a customizable hotbar to the editor in which you can add frequently used objects. Keybinds and the hotbar color are also customizable in the mod's settings.
 
 # Compatibility
-This mod has been tested with both BetterEdit and Tinker. Please report any compatibility issues if found (see below)
+~~This mod has been tested with both BetterEdit and Tinker. Please report any compatibility issues if found (see below)~~
+This mod is currently incompatible with [Tinker](mod:alphalaneous.tinker), compatibility should be restored soon.
 
 # Issues
 Please contact @rhncg on Discord if you run into any issues or have suggestions
