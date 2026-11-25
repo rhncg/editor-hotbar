@@ -446,8 +446,13 @@ class $modify(ModEditorUI, EditorUI) {
         updateHotbar();
     }
 
-    void updateCreateMenu(bool selectTab) {
-        EditorUI::updateCreateMenu(selectTab);
+    // void updateCreateMenu(bool selectTab) {
+    //     EditorUI::updateCreateMenu(selectTab);
+    //     updateHotbar(true);
+    // }
+
+    void toggleMode(CCObject *sender) {
+        EditorUI::toggleMode(sender);
         updateHotbar(true);
     }
 

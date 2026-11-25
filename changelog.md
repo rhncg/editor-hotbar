@@ -1,3 +1,6 @@
+# 1.1.5
+- Fixed an issue where the hotbar would not appear when in the build menu
+
 # 1.1.4
 - iOS is back
 
