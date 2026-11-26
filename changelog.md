@@ -1,3 +1,6 @@
+# 1.2.1
+- Got rid of random hook
+
 # 1.2.0
 - Refactored code
 - Tinker compatibility is back
